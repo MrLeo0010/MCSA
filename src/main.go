@@ -30,33 +30,31 @@ func main() {
 			break
 		}
 
-		color.Printf("<gray>Опрос %s...</>\n", targetServer)
-
+		// === ЛОГ ВЫПОЛНЕНИЯ ===
+		color.Printf("\n<gray>Опрос %s...</>\n", targetServer)
 		start := time.Now()
 		res, err := PingServer(targetServer, 5*time.Second)
 		if err != nil {
-			color.Printf("<red>[ОШИБКА] %v</>\n\n", err)
+			color.Printf("<red>[ОШИБКА] Не удалось опросить сервер: %v</>\n\n", err)
 			continue
 		}
 		duration := time.Since(start)
 
-		// Вывод результатов с красивыми тегами gookit/color
-		color.Println("\n<green>=== РЕЗУЛЬТАТЫ АНАЛИЗА ===</>")
+		// === ЧИСТЫЙ КРАСИВЫЙ ФИНАЛЬНЫЙ ВЫВОД ===
+		color.Println("\n<green>==================================================</>")
+		color.Println("<green>               РЕЗУЛЬТАТЫ АНАЛИЗА                 </>")
+		color.Println("<green>==================================================</>")
 
-		// Пинг
+		// Основные метрики
 		color.Printf("<blue>Пинг:</>        %v\n", duration.Round(time.Millisecond))
-
-		// Ядро и Версия
 		color.Printf("<blue>Ядро/Версия:</> <magenta>%s</> (Протокол: %d)\n", res.Version.Name, res.Version.Protocol)
 
-		// Игроки
-		color.Printf("<blue>Онлайн:</>      <green>%d</> / <red>%d</>\n", res.Players.Online, res.Players.Max)
-
-		// MOTD
 		motd := strings.TrimSpace(res.ParseMOTD())
 		color.Printf("<blue>MOTD:</>        %s\n", motd)
 
-		// Список игроков (если отдает)
+		color.Printf("<blue>Онлайн:</>      <green>%d</> / <red>%d</>\n", res.Players.Online, res.Players.Max)
+
+		// Игроки
 		if len(res.Players.Sample) > 0 {
 			color.Println("<blue>Игроки онлайн (выборка):</>")
 			for _, player := range res.Players.Sample {
@@ -70,6 +68,17 @@ func main() {
 			}
 		}
 
-		color.Println("<green>==========================</>\n")
+		color.Println() // Пустая строка для читаемости
+
+		// Вердикт по типу сервера (Лицензия/Пиратка)
+		if res.IsPirate {
+			color.Printf("<red>❌ Режим: ПИРАТСКИЙ (online-mode = false)</>\n")
+			color.Printf("   Основание: <yellow>%s</>\n", res.PirateReason)
+		} else {
+			color.Printf("<green>✅ Режим: ЛИЦЕНЗИОННЫЙ (online-mode = true)</>\n")
+			color.Printf("   Основание: %s\n", res.PirateReason)
+		}
+
+		color.Println("<green>==================================================</>\n")
 	}
 }
