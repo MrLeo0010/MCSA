@@ -1,4 +1,4 @@
-package main
+package src
 
 // ParseMOTD безопасно извлекает текстовый MOTD
 func (s *StatusResponse) ParseMOTD() string {

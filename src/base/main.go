@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"minecraft_server_analyser/src"
 	"os"
 	"strings"
 	"time"
@@ -33,7 +34,7 @@ func main() {
 		// === ЛОГ ВЫПОЛНЕНИЯ ===
 		color.Printf("\n<gray>Опрос %s...</>\n", targetServer)
 		start := time.Now()
-		res, err := PingServer(targetServer, 5*time.Second)
+		res, err := src.PingServer(targetServer, 5*time.Second)
 		if err != nil {
 			color.Printf("<red>[ОШИБКА] Не удалось опросить сервер: %v</>\n\n", err)
 			continue
