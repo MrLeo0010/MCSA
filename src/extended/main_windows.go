@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"strings"
@@ -87,8 +88,14 @@ func runBaseWorkflow(serverIP string) string {
 func runMCCWorkflow(serverIP string) string {
 	color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
 
+	os.Chdir(".\\MCC")
 	mccPath := ".\\MinecraftClient.exe"
+
 	botName := fmt.Sprintf("MCSA_Bot_%d", time.Now().Unix()%10000)
+	if len(src.BotNameVariants) > 0 {
+		botNameIndex := rand.IntN(len(src.BotNameVariants))
+		botName = src.BotNameVariants[botNameIndex]
+	}
 
 	cmd := exec.Command(mccPath, botName, "-", serverIP, "Offline")
 
@@ -111,6 +118,7 @@ func runMCCWorkflow(serverIP string) string {
 	color.Println("<gray>[i] Окно MCC открыто. Анализируем лог чата...</>")
 
 	verdict := "UNKNOWN"
+	matchedLine := ""
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
@@ -121,12 +129,21 @@ func runMCCWorkflow(serverIP string) string {
 
 		lineLower := strings.ToLower(line)
 
-		if strings.Contains(lineLower, "/register") || strings.Contains(lineLower, "зарегистрируйтесь") {
-			verdict = "PIRATE_AUTH"
+		// Проверяем индикаторы ошибок
+		if src.ContainsAny(lineLower, src.ErrorIndicators) {
+			verdict = "ERROR"
+			matchedLine = line
 			break
 		}
-		if strings.Contains(lineLower, "/login") {
+		if src.ContainsAny(lineLower, src.RegisterIndicators) {
+			verdict = "PIRATE_AUTH"
+			matchedLine = line
+			break
+		}
+		// Проверяем индикаторы авторизации (логина)
+		if src.ContainsAny(lineLower, src.LoginIndicators) {
 			verdict = "NICK_TAKEN"
+			matchedLine = line
 			break
 		}
 		if strings.Contains(lineLower, "failed to verify username") || strings.Contains(lineLower, "session") {
@@ -143,16 +160,17 @@ func runMCCWorkflow(serverIP string) string {
 	_ = cmd.Process.Kill()
 	color.Println("<gray>[Extended] Процесс MCC завершен.</>")
 
-	// Формируем красивую строку-вердикт для возврата
 	switch verdict {
 	case "PIRATE_AUTH":
-		return "❌ ПИРАТКА (Требуется регистрация, найден плагин авторизации)"
+		return "❌ ПИРАТКА (Требуется регистрация, найден плагин авторизации) (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	case "NICK_TAKEN":
-		return "⚠ ПИРАТКА (Ник бота занят, сервер требует войти по логину)"
+		return "⚠ ПИРАТКА (Ник бота занят, сервер требует войти по логину) (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	case "LICENSE":
 		return "✅ ЛИЦЕНЗИЯ (Вход только с аккаунтом Microsoft)"
 	case "KICKED":
 		return "⚠ КИКНУТ / ЗАБАНЕН (Сервер оборвал соединение)"
+	case "ERROR":
+		return "⚠ ОШИБКА! Бот не смог войти (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	default:
 		return "❔ СВОБОДНЫЙ ВХОД (Бот зашел без препятствий)"
 	}
