@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	// Импортируем твой общий пакет (замени имя модуля на свое, если оно другое в go.mod)
+	// Импортируем твой общий пакет
 	"minecraft_server_analyser/src"
 
 	"github.com/gookit/color"
@@ -38,36 +38,55 @@ func main() {
 			break
 		}
 
-		// === ШАГ 1: БЫСТРЫЙ БАЗОВЫЙ ПИНГ ===
-		color.Println("\n<yellow>[1/2] Запуск базового анализа...</>")
+		// === ШАГ 1: БАЗОВЫЙ АНАЛИЗ ===
+		baseResult := runBaseWorkflow(target)
 
-		// Используем твою общую функцию пинга из пакета src
-		res, err := src.PingServer(target, 5*time.Second)
-		if err != nil {
-			color.Printf("<red>❌ Ошибка базового подключения: %v</>\n", err)
-			color.Println("<gray>Пробуем запустить MCC напрямую, возможно сервер блокирует обычный пинг...</gray>")
-			// Если обычный пинг упал, всё равно даем шанс MCC
-			runMCCWorkflow(target)
-			continue
-		}
+		// === ШАГ 2: ГЛУБОКИЙ АНАЛИЗ (MCC) ===
+		mccResult := runMCCWorkflow(target)
 
-		motd := strings.TrimSpace(res.ParseMOTD())
-		// Выводим базовую инфу красиво (как в твоей base-версии)
-		color.Println("<green>--------------------------------------------------</>")
-		color.Printf("<green>Версия:</> %s (Протокол %d)\n", res.Version.Name, res.Version.Protocol)
-		color.Printf("<green>Игроки:</> %d/%d\n", res.Players.Online, res.Players.Max)
-		// Чистим MOTD от параграфов параграфов цвета (§) перед выводом, если у тебя есть для этого функция
-		// Берем готовый метод прямо из твоих моделей!
-		color.Printf("<green>MOTD:</>   %s\n", motd)
-		color.Println("<green>--------------------------------------------------</>")
-
-		// === ШАГ 2: ГЛУБОКИЙ АНАЛИЗ ЧЕРЕЗ MCC ===
-		color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
-		runMCCWorkflow(target)
+		// === ШАГ 3: КРАСИВЫЙ СВОДНЫЙ ВЫВОД ===
+		printResults(mccResult, baseResult)
 	}
 }
 
-func runMCCWorkflow(serverIP string) {
+// printResults собирает всю аналитику воедино и выводит итоговую картину
+func printResults(mccResult, baseResult string) {
+	color.Println("\n<green>==================================================</>")
+	color.Println("<green>               ИТОГОВЫЙ СВОДНЫЙ ОТЧЕТ             </>")
+	color.Println("<green>==================================================</>")
+
+	color.Printf("<cyan>Базовый анализ:</> %s\n", baseResult)
+	color.Printf("<cyan>Анализ через MCC:</> %s\n", mccResult)
+	color.Println("<green>==================================================</>")
+}
+
+// runBaseWorkflow пингует сервер, парсит MOTD и онлайн
+func runBaseWorkflow(serverIP string) string {
+	color.Println("\n<yellow>[1/2] Запуск базового анализа...</>")
+
+	res, err := src.PingServer(serverIP, 5*time.Second)
+	if err != nil {
+		color.Printf("<red>❌ Ошибка базового подключения: %v</>\n", err)
+		return fmt.Sprintf("Ошибка пинга (%v)", err)
+	}
+
+	motd := strings.TrimSpace(res.ParseMOTD())
+
+	// Выводим инфу в процессе, чтобы юзер видел промежуточный статус
+	color.Println("<green>--------------------------------------------------</>")
+	color.Printf("<green>Версия:</> %s (Протокол %d)\n", res.Version.Name, res.Version.Protocol)
+	color.Printf("<green>Игроки:</> %d/%d\n", res.Players.Online, res.Players.Max)
+	color.Printf("<green>MOTD:</>   %s\n", motd)
+	color.Println("<green>--------------------------------------------------</>")
+
+	// Возвращаем компактную строку для финального отчета
+	return fmt.Sprintf("Успешно пингуется | Версия: %s | Игроки: %d/%d", res.Version.Name, res.Players.Online, res.Players.Max)
+}
+
+// runMCCWorkflow запускает бота и возвращает текстовый вердикт
+func runMCCWorkflow(serverIP string) string {
+	color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
+
 	mccPath := ".\\MinecraftClient.exe"
 	botName := fmt.Sprintf("MCSA_Bot_%d", time.Now().Unix()%10000)
 
@@ -79,31 +98,29 @@ func runMCCWorkflow(serverIP string) {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		color.Printf("<red>[Ошибка] Не удалось подключить StdoutPipe: %v</>\n", err)
-		return
+		errMsg := fmt.Sprintf("Ошибка подключения StdoutPipe: %v", err)
+		color.Printf("<red>[Ошибка] %s</>\n", errMsg)
+		return errMsg
 	}
 
 	if err := cmd.Start(); err != nil {
-		color.Printf("<red>[Ошибка] Не удалось запустить MinecraftClient.exe: %v</>\n", err)
-		color.Println("<yellow>Убедись, что MinecraftClient.exe лежит в одной папке со сканером!</>")
-		return
+		color.Printf("<red>[Ошибка] Не удалось запустить %s: %v</>\n", mccPath, err)
+		return "Ошибка запуска MCC (проверь наличие .exe)"
 	}
 
-	color.Println("<gray>[i] Окно MCC открыто. Парсим логи чата в реальном времени...</>")
+	color.Println("<gray>[i] Окно MCC открыто. Анализируем лог чата...</>")
 
-	// Переменная для финального вердикта
 	verdict := "UNKNOWN"
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Теперь логи выводятся красиво серым цветом, без сырых тегов!
+		// Печатаем логи MCC красивым приглушенным серым
 		color.Printf("<gray>[MCC] %s</>\n", line)
 
 		lineLower := strings.ToLower(line)
 
-		// Логика определения вердикта
 		if strings.Contains(lineLower, "/register") || strings.Contains(lineLower, "зарегистрируйтесь") {
 			verdict = "PIRATE_AUTH"
 			break
@@ -116,38 +133,27 @@ func runMCCWorkflow(serverIP string) {
 			verdict = "LICENSE"
 			break
 		}
-		// Если бота кикнуло по другой причине (например, спам-фильтр или вайтлист)
 		if strings.Contains(lineLower, "kicked") || strings.Contains(lineLower, "banned") {
 			verdict = "KICKED"
 			break
 		}
 	}
 
-	// Убиваем процесс MCC
+	// Корректно завершаем процесс
 	_ = cmd.Process.Kill()
 	color.Println("<gray>[Extended] Процесс MCC завершен.</>")
 
-	// === ШАГ 3: ФИНАЛЬНЫЙ СВОДНЫЙ ОТЧЕТ ===
-	color.Println("\n<green>==================================================</>")
-	color.Println("<green>               ИТОГОВЫЙ ВЕРДИКТ                   </>")
-	color.Println("<green>==================================================</>")
-
+	// Формируем красивую строку-вердикт для возврата
 	switch verdict {
 	case "PIRATE_AUTH":
-		color.Println("<red>❌ Статус авторизации: ТРЕБУЕТСЯ РЕГИСТРАЦИЯ</>")
-		color.Println("<gray>Обнаружен плагин авторизации (AuthMe / LogIt / аналоги).</ gray>")
+		return "❌ ПИРАТКА (Требуется регистрация, найден плагин авторизации)"
 	case "NICK_TAKEN":
-		color.Println("<yellow>⚠ Статус авторизации: НИК ЗАНЯТ</>")
-		color.Println("<gray>Сервер пиратский, но ник нашего бота уже зарегистрирован в базе.</>")
+		return "⚠ ПИРАТКА (Ник бота занят, сервер требует войти по логину)"
 	case "LICENSE":
-		color.Println("<green>✅ Статус авторизации: ЛИЦЕНЗИЯ (Online Mode)</>")
-		color.Println("<gray>Вход без лицензионного аккаунта Microsoft невозможен.</>")
+		return "✅ ЛИЦЕНЗИЯ (Вход только с аккаунтом Microsoft)"
 	case "KICKED":
-		color.Println("<yellow>⚠ Статус авторизации: БОТ БЫЛ КИКНУТ / ЗАБАНЕН</> ")
-		color.Println("<gray>Сервер прервал соединение до того, как мы успели прочитать чат.</ gray>")
+		return "⚠ КИКНУТ / ЗАБАНЕН (Сервер оборвал соединение)"
 	default:
-		color.Println("<white>❔ Статус авторизации: СВОБОДНЫЙ ВХОД (Возможно)</>")
-		color.Println("<gray>Бот успешно зашел, сообщений о регистрации в чате не обнаружено.</ gray>")
+		return "❔ СВОБОДНЫЙ ВХОД (Бот зашел без препятствий)"
 	}
-	color.Println("<green>==================================================</>")
 }
