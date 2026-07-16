@@ -1,2 +1,4 @@
 bin/*.exe
+bin/MCC/lang/
 *.lnk
+bin/MCC/MinecraftClient.backup.ini
