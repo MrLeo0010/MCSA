@@ -124,35 +124,53 @@ func runMCCWorkflow(serverIP string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Печатаем логи MCC красивым приглушенным серым
-		color.Printf("<gray>[MCC] %s</>\n", line)
+		// Переменные для подсветки
+		var found bool
+		var start, end int
+		var highlightColor string
 
-		lineLower := strings.ToLower(line)
-
-		// Проверяем индикаторы ошибок
-		if src.ContainsAny(lineLower, src.ErrorIndicators) {
-			verdict = "ERROR"
+		// 1. Проверяем индикаторы ошибок
+		if found, start, end = src.ContainsAny(line, src.ErrorIndicators); found {
+			verdict = "LOGIN_ERROR"
 			matchedLine = line
-			break
-		}
-		if src.ContainsAny(lineLower, src.RegisterIndicators) {
+			highlightColor = "red"
+		} else if found, start, end = src.ContainsAny(line, src.RegisterIndicators); found { // 2. Регистрация
 			verdict = "PIRATE_AUTH"
 			matchedLine = line
-			break
-		}
-		// Проверяем индикаторы авторизации (логина)
-		if src.ContainsAny(lineLower, src.LoginIndicators) {
+			highlightColor = "yellow"
+		} else if found, start, end = src.ContainsAny(line, src.LoginIndicators); found { // 3. Логин
 			verdict = "NICK_TAKEN"
 			matchedLine = line
-			break
+			highlightColor = "cyan"
 		}
-		if strings.Contains(lineLower, "failed to verify username") || strings.Contains(lineLower, "session") {
-			verdict = "LICENSE"
-			break
-		}
-		if strings.Contains(lineLower, "kicked") || strings.Contains(lineLower, "banned") {
-			verdict = "KICKED"
-			break
+
+		// Вывод строки лога в консоль
+		if found {
+			// Если триггер сработал, переводим оригинальную строку в руны и режем её по индексам
+			lineRunes := []rune(line)
+			before := string(lineRunes[:start])
+			matched := string(lineRunes[start:end])
+			after := string(lineRunes[end:])
+
+			// Печатаем строку, подсвечивая только совпадение нужным цветом
+			color.Printf("<gray>[MCC]</> %s<%s>%s</>%s\n", before, highlightColor, matched, after)
+			break // Выходим из цикла, так как вердикт найден
+		} else {
+			// Обычные строки, в которых ничего не нашлось, просто печатаем серым
+			// (Остальные проверки на "failed to verify username", "kicked" и т.д. можно делать тут или дописать для них индикаторы в variables.go)
+			lineLower := strings.ToLower(line)
+			if strings.Contains(lineLower, "failed to verify username") || strings.Contains(lineLower, "session") {
+				verdict = "LICENSE"
+				color.Printf("<gray>[MCC] %s</>\n", line)
+				break
+			}
+			if strings.Contains(lineLower, "kicked") || strings.Contains(lineLower, "banned") {
+				verdict = "KICKED"
+				color.Printf("<gray>[MCC] %s</>\n", line)
+				break
+			}
+
+			color.Printf("<gray>[MCC] %s</>\n", line)
 		}
 	}
 
@@ -169,7 +187,7 @@ func runMCCWorkflow(serverIP string) string {
 		return "✅ ЛИЦЕНЗИЯ (Вход только с аккаунтом Microsoft)"
 	case "KICKED":
 		return "⚠ КИКНУТ / ЗАБАНЕН (Сервер оборвал соединение)"
-	case "ERROR":
+	case "LOGIN_ERROR":
 		return "⚠ ОШИБКА! Бот не смог войти (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	default:
 		return "❔ СВОБОДНЫЙ ВХОД (Бот зашел без препятствий)"

@@ -31,4 +31,4 @@ var BotNameVariants = []string{"I_am_player", "Real_player", "Bratanchik228", "M
 
 var RegisterIndicators = []string{"/reg", "/register", "зарегистрируйтесь", "regicter", "confirmpassword", "пароля"}
 var LoginIndicators = []string{"/login", "войти", "вход", "/log", "войдите", "login"}
-var ErrorIndicators = []string{"Версия сервера:", "Не удалось выполнить ping этого IP", "System.Net.Sockets.SocketException"}
+var ErrorIndicators = []string{"Не удалось выполнить ping этого IP", "System.Net.Sockets.SocketException"}

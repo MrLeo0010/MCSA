@@ -11,14 +11,39 @@ func CleanMOTD(motd string) string {
 	return re.ReplaceAllString(motd, "")
 }
 
-// containsAny проверяет, содержится ли хотя бы одна фраза из списка в строке str
-func ContainsAny(str string, indicators []string) bool {
+func ContainsAny(str string, indicators []string) (bool, int, int) {
+	// Переводим исходную строку в нижний регистр и сразу в руны
+	strRunes := []rune(strings.ToLower(str))
+
 	for _, indicator := range indicators {
-		// Приводим индикатор к нижнему регистру на случай,
-		// если в массиве src.RegisterIndicators они записаны в разном регистре
-		if strings.Contains(str, strings.ToLower(indicator)) {
-			return true
+		indicatorRunes := []rune(strings.ToLower(indicator))
+
+		// Ищем совпадение слайса рун indicatorRunes внутри strRunes
+		start := findRuneSubslice(strRunes, indicatorRunes)
+		if start != -1 {
+			end := start + len(indicatorRunes)
+			return true, start, end
 		}
 	}
-	return false
+	return false, -1, -1
+}
+
+// Вспомогательная функция для поиска одного слайса рун в другом
+func findRuneSubslice(haystack, needle []rune) int {
+	if len(needle) == 0 {
+		return -1
+	}
+	for i := 0; i <= len(haystack)-len(needle); i++ {
+		match := true
+		for j := 0; j < len(needle); j++ {
+			if haystack[i+j] != needle[j] {
+				match = false
+				break
+			}
+		}
+		if match {
+			return i
+		}
+	}
+	return -1
 }
