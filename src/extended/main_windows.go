@@ -142,6 +142,10 @@ func runMCCWorkflow(serverIP string) string {
 			verdict = "NICK_TAKEN"
 			matchedLine = line
 			highlightColor = "cyan"
+		} else if found, start, end = src.ContainsAny(line, src.LicenseIndicators); found { // 4. Лицензия
+			verdict = "LICENSE"
+			matchedLine = line
+			highlightColor = "red"
 		}
 
 		// Вывод строки лога в консоль
@@ -184,7 +188,7 @@ func runMCCWorkflow(serverIP string) string {
 	case "NICK_TAKEN":
 		return "⚠ ПИРАТКА (Ник бота занят, сервер требует войти по логину) (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	case "LICENSE":
-		return "✅ ЛИЦЕНЗИЯ (Вход только с аккаунтом Microsoft)"
+		return "⚠ ЛИЦЕНЗИЯ (Вход только с аккаунтом Microsoft) (Совпадение по: " + strings.TrimSpace(matchedLine) + ")"
 	case "KICKED":
 		return "⚠ КИКНУТ / ЗАБАНЕН (Сервер оборвал соединение)"
 	case "LOGIN_ERROR":

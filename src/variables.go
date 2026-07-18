@@ -29,6 +29,7 @@ var AuthPlugins = []string{"authme", "loginsecurity", "advancedlogin", "xauth", 
 // Список вариантов имен ботов
 var BotNameVariants = []string{"I_am_player", "Real_player", "Bratanchik228", "MrBratik"}
 
+var LicenseIndicators = []string{"Не удалось проверить имя пользователя", "Failed to verify username", "Microsoft"}
 var RegisterIndicators = []string{"/reg", "/register", "зарегистрируйтесь", "regicter", "confirmpassword", "пароля"}
-var LoginIndicators = []string{"/login", "войти", "вход", "/log", "войдите", "login"}
+var LoginIndicators = []string{"/login", "вход", "/log", "войдите", "login"}
 var ErrorIndicators = []string{"Не удалось выполнить ping этого IP", "System.Net.Sockets.SocketException"}
