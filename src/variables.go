@@ -48,6 +48,7 @@ var BotNameVariants = []string{
 	"Respawning",
 	"StoneEnjoyer",
 	"HerobrineFan",
+	"Join_server",
 }
 
 var LicenseIndicators = []string{
