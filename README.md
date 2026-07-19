@@ -8,6 +8,8 @@
 
 > ⚠️ **Note:** The project is under active development. The documentation may slightly lag behind the current state of the code, but the overall concept and structure always remain accurate.
 
+> **Interface Language:** The interface is currently available only in Russian. If you need support for other languages, please let us know in the issues.
+
 ---
 
 ## System Modules
