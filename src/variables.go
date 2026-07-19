@@ -23,13 +23,59 @@ type StatusResponse struct {
 // Регулярка для поиска следов плагинов авторизации в тексте кика
 var AuthKeywordsRegex = regexp.MustCompile(`(?i)(reg|login|auth|log in|register|войти|вход|пароль|авториз)`)
 
-// Список известных плагинов авторизации для проверки через Query
-var AuthPlugins = []string{"authme", "loginsecurity", "advancedlogin", "xauth", "userconn", "fastlogin"}
-
 // Список вариантов имен ботов
-var BotNameVariants = []string{"I_am_player", "Real_player", "Bratanchik228", "MrBratik"}
+var BotNameVariants = []string{
+	"Alex228",
+	"Den4ik",
+	"KirillPlay",
+	"Vladik",
+	"JustPlayer",
+	"NoobMaster",
+	"DarkFox",
+	"Ghost",
+	"StevePro",
+	"CraftBoy",
+	"PlayerOne",
+	"MineCraftik",
+	"DragonSlayer",
+	"Kotik",
+	"DefinitelyHuman",
+	"TotallyNotBot",
+	"AFK_Player",
+	"NoCheats",
+	"TrustMeBro",
+	"LoadingChunks",
+	"Respawning",
+	"StoneEnjoyer",
+	"HerobrineFan",
+}
 
-var LicenseIndicators = []string{"Не удалось проверить имя пользователя", "Failed to verify username", "Microsoft"}
-var RegisterIndicators = []string{"/reg", "/register", "зарегистрируйтесь", "regicter", "confirmpassword", "пароля"}
-var LoginIndicators = []string{"/login", "вход", "/log", "войдите", "login"}
-var ErrorIndicators = []string{"Не удалось выполнить ping этого IP", "System.Net.Sockets.SocketException"}
+var LicenseIndicators = []string{
+	"Не удалось проверить имя пользователя",
+	"Failed to verify username",
+	"Microsoft",
+}
+var RegisterIndicators = []string{
+	"/reg",
+	"/register",
+	"зарегистрируйтесь",
+	"regicter",
+	"confirmpassword",
+	"пароля",
+}
+var LoginIndicators = []string{
+	"/login",
+	"вход",
+	"/log",
+	"войдите",
+	"login",
+}
+var ErrorIndicators = []string{
+	"Не удалось выполнить ping этого IP",
+	"System.Net.Sockets.SocketException",
+	"эта версия не поддерживается",
+	"Не удается подключиться к серверу",
+	"[ERROR]",
+	"IOException",
+	"at System.",
+}
