@@ -1,5 +1,5 @@
 ### Language:
-- [Русский](README-RUS.md)
+- [Русский](README.ru.md)
 - English (Current)
 
 # MCSA (Minecraft Server Analyser)
