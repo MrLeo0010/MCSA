@@ -1,5 +1,7 @@
-bin/*.exe
-bin/MCC/lang/
+bin/minimal/
+bin/base/
+bin/extended/*.exe
+bin/extended/MCC/lang/
 *.lnk
 bin/extended/MCC/MinecraftClient.backup.ini
 bin/minimal/*.txt
