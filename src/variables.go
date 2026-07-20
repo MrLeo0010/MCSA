@@ -63,7 +63,7 @@ var RegisterIndicators = []string{
 	"зарегистрируйтесь",
 	"regicter",
 	"confirmpassword",
-	"пароля",
+	"парол",
 }
 var LoginIndicators = []string{
 	"/login",
