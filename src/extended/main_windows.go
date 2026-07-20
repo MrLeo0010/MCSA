@@ -123,56 +123,50 @@ func runMCCWorkflow(serverIP string) string {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Переменные для подсветки
-		var found bool
-		var start, end int
-		var highlightColor string
+		var (
+			found          bool
+			start, end     int
+			highlightColor string
+		)
 
-		// 1. Проверяем индикаторы ошибок
-		if found, start, end = src.ContainsAny(line, src.ErrorIndicators); found {
-			verdict = "LOGIN_ERROR"
-			matchedLine = line
-			highlightColor = "red"
-		} else if found, start, end = src.ContainsAny(line, src.RegisterIndicators); found { // 2. Регистрация
-			verdict = "PIRATE_AUTH"
-			matchedLine = line
-			highlightColor = "yellow"
-		} else if found, start, end = src.ContainsAny(line, src.LoginIndicators); found { // 3. Логин
-			verdict = "NICK_TAKEN"
-			matchedLine = line
-			highlightColor = "cyan"
-		} else if found, start, end = src.ContainsAny(line, src.LicenseIndicators); found { // 4. Лицензия
-			verdict = "LICENSE"
-			matchedLine = line
-			highlightColor = "red"
+		// Основные правила
+		for _, rule := range src.IndicatorRules {
+			if found, start, end = src.WhereContainsAny(line, rule.Indicators); found {
+				verdict = rule.Verdict
+				matchedLine = line
+				highlightColor = rule.Color
+				break
+			}
 		}
 
-		// Вывод строки лога в консоль
 		if found {
-			// Если триггер сработал, переводим оригинальную строку в руны и режем её по индексам
 			lineRunes := []rune(line)
-			before := string(lineRunes[:start])
-			matched := string(lineRunes[start:end])
-			after := string(lineRunes[end:])
 
-			// Печатаем строку, подсвечивая только совпадение нужным цветом
-			color.Printf("<gray>[MCC]</> %s<%s>%s</>%s\n", before, highlightColor, matched, after)
-			break // Выходим из цикла, так как вердикт найден
-		} else {
-			// Обычные строки, в которых ничего не нашлось, просто печатаем серым
-			// (Остальные проверки на "failed to verify username", "kicked" и т.д. можно делать тут или дописать для них индикаторы в variables.go)
-			lineLower := strings.ToLower(line)
-			if strings.Contains(lineLower, "failed to verify username") || strings.Contains(lineLower, "session") {
-				verdict = "LICENSE"
-				color.Printf("<gray>[MCC] %s</>\n", line)
-				break
-			}
-			if strings.Contains(lineLower, "kicked") || strings.Contains(lineLower, "banned") {
-				verdict = "KICKED"
-				color.Printf("<gray>[MCC] %s</>\n", line)
-				break
-			}
+			color.Printf(
+				"<gray>[MCC]</> %s<%s>%s</>%s\n",
+				string(lineRunes[:start]),
+				highlightColor,
+				string(lineRunes[start:end]),
+				string(lineRunes[end:]),
+			)
+			break
+		}
 
+		lineLower := strings.ToLower(line)
+
+		switch {
+		case src.ContainsAny(lineLower, src.SessionIndicators):
+			verdict = "LICENSE"
+			color.Printf("<gray>[MCC] %s</>\n", line)
+
+		case src.ContainsAny(lineLower, src.KickIndicators):
+			verdict = "KICKED"
+			color.Printf("<gray>[MCC] %s</>\n", line)
+
+		case src.ContainsAny(lineLower, src.SkipTriggers):
+			continue
+
+		default:
 			color.Printf("<gray>[MCC] %s</>\n", line)
 		}
 	}

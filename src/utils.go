@@ -11,7 +11,7 @@ func CleanMOTD(motd string) string {
 	return re.ReplaceAllString(motd, "")
 }
 
-func ContainsAny(str string, indicators []string) (bool, int, int) {
+func WhereContainsAny(str string, indicators []string) (bool, int, int) {
 	// Переводим исходную строку в нижний регистр и сразу в руны
 	strRunes := []rune(strings.ToLower(str))
 
@@ -26,6 +26,17 @@ func ContainsAny(str string, indicators []string) (bool, int, int) {
 		}
 	}
 	return false, -1, -1
+}
+
+func ContainsAny(s string, words []string) bool {
+	s = strings.ToLower(s)
+
+	for _, word := range words {
+		if strings.Contains(s, strings.ToLower(word)) {
+			return true
+		}
+	}
+	return false
 }
 
 // Вспомогательная функция для поиска одного слайса рун в другом

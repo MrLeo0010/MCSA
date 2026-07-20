@@ -1,6 +1,8 @@
 package src
 
-import "regexp"
+import (
+	"regexp"
+)
 
 // Базовая структура ответа Server List Ping
 type StatusResponse struct {
@@ -22,6 +24,29 @@ type StatusResponse struct {
 
 // Регулярка для поиска следов плагинов авторизации в тексте кика
 var AuthKeywordsRegex = regexp.MustCompile(`(?i)(reg|login|auth|log in|register|войти|вход|пароль|авториз)`)
+
+type IndicatorRule struct {
+	Indicators []string
+	Verdict    string
+	Color      string
+}
+
+var IndicatorRules = []IndicatorRule{
+	{ErrorIndicators, "LOGIN_ERROR", "red"},
+	{RegisterIndicators, "PIRATE_AUTH", "yellow"},
+	{LoginIndicators, "NICK_TAKEN", "cyan"},
+	{LicenseIndicators, "LICENSE", "red"},
+}
+
+var KickIndicators = []string{
+	"kicked",
+	"banned",
+}
+
+var SessionIndicators = []string{
+	"failed to verify username",
+	"session",
+}
 
 // Список вариантов имен ботов
 var BotNameVariants = []string{
@@ -80,4 +105,9 @@ var ErrorIndicators = []string{
 	"[ERROR]",
 	"IOException",
 	"at System.",
+}
+var SkipTriggers = []string{
+	"github.com/MCCTeam",
+	"crowdin.com/project/minecraft-console-client",
+	"GitHub build",
 }
