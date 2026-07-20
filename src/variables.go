@@ -16,8 +16,8 @@ type StatusResponse struct {
 	Description interface{} `json:"description"` // Может быть строкой или объектом Chat
 
 	// Наши кастомные поля (Go пропустит их при Unmarshal из JSON, заполним сами)
-	IsPirate     bool   `json:"-"`
-	PirateReason string `json:"-"`
+	PirateStatus       string `json:"-"`
+	PirateStatusReason string `json:"-"`
 }
 
 // Регулярка для поиска следов плагинов авторизации в тексте кика

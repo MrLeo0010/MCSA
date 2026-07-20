@@ -148,12 +148,15 @@ func PingServer(address string, timeout time.Duration) (*StatusResponse, error) 
 	offlineUUIDRegex := regexp.MustCompile(`(?i)[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}`)
 
 	if offlineUUIDRegex.Match(jsonBytes) {
-		response.IsPirate = true
-		response.PirateReason = "В выборке игроков найден Offline-UUID (UUID v3)"
-	} else {
+		response.PirateStatus = "PIRATE"
+		response.PirateStatusReason = "В выборке игроков найден Offline-UUID"
+	} else if response.Players.Online == 0 {
 		// Если игроков нет, мы пока не пишем, что это лицензия, а честно говорим, что нужно проверить при входе
-		response.IsPirate = false
-		response.PirateReason = "Сервер пуст, требуется проверка пакетом Login"
+		response.PirateStatus = "UNKNOWN"
+		response.PirateStatusReason = "Сервер пуст, требуется проверка пакетом Login"
+	} else {
+		response.PirateStatus = "LICENSE"
+		response.PirateStatusReason = "Найден Online-UUID"
 	}
 
 	return &response, nil

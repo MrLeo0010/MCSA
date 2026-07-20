@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	// Импортируем твой общий пакет
 	"minecraft_server_analyser/src"
 
 	"github.com/gookit/color"

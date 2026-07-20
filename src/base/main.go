@@ -69,15 +69,18 @@ func main() {
 			}
 		}
 
-		color.Println() // Пустая строка для читаемости
+		color.Println()
 
 		// Вердикт по типу сервера (Лицензия/Пиратка)
-		if res.IsPirate {
+		if res.PirateStatus == "PIRATE" {
 			color.Printf("<red>❌ Режим: ПИРАТСКИЙ (online-mode = false)</>\n")
-			color.Printf("   Основание: <yellow>%s</>\n", res.PirateReason)
-		} else {
+			color.Printf("   Основание: <yellow>%s</>\n", res.PirateStatusReason)
+		} else if res.PirateStatus == "LICENSE" {
 			color.Printf("<green>✅ Режим: ЛИЦЕНЗИОННЫЙ (online-mode = true)</>\n")
-			color.Printf("   Основание: %s\n", res.PirateReason)
+			color.Printf("   Основание: %s\n", res.PirateStatusReason)
+		} else {
+			color.Printf("<yellow>❓ Режим: НЕИЗВЕСТНО</>\n")
+			color.Printf("   <gray>%s</>\n", res.PirateStatusReason)
 		}
 
 		color.Println("<green>==================================================</>\n")
