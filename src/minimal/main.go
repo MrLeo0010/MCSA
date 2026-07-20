@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	// Импортируем твой общий пакет протокола
 	"minecraft_server_analyser/src"
 
 	"github.com/gookit/color"
