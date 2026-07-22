@@ -1,8 +1,24 @@
-bin/minimal/
-bin/base/
-bin/extended/*.exe
-bin/extended/MCC/lang/
+# Windows / OS артефакты и метаданные скачивания
+*:Zone.Identifier
+.DS_Store
+Thumbs.db
+
+# Игнорируем бинарники Windows по умолчанию
+*.exe
 *.lnk
-bin/extended/MCC/MinecraftClient.backup.ini
-bin/minimal/*.txt
-*.exe~    # build artifacts
+
+# --- Логика для папки bin ---
+# 1. Игнорируем всё содержимое bin/
+bin/*
+
+# 2. Разрешаем Git проходить по вложенным директориям внутри bin/
+!bin/**/
+
+# 3. Игнорируем скомпилированные бинарники твоего анализатора
+bin/**/minecraft_server_analyser*
+
+# 4. Сохраняем MCC (бинарник и конфиг) и доп. скрипты
+!bin/**/MCC/MinecraftClient
+!bin/**/MCC/MinecraftClient.exe
+!bin/**/MCC/MinecraftClient.ini
+!bin/**/APS2MCSA.py

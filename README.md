@@ -44,4 +44,4 @@ The project includes a companion Python script for data preprocessing. It cleans
 Compilation of all modules for the required platform is carried out using ready-made automation scripts:
 
 * **Windows:** `build_win.bat`
-* **Linux:** coming soon...
+* **Linux:** `build_linux.sh`
