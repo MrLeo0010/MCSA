@@ -25,6 +25,8 @@ type StatusResponse struct {
 // Регулярка для поиска следов плагинов авторизации в тексте кика
 var AuthKeywordsRegex = regexp.MustCompile(`(?i)(reg|login|auth|log in|register|войти|вход|пароль|авториз)`)
 
+var MCCLink = "https://github.com/MCCTeam/Minecraft-Console-Client"
+
 type IndicatorRule struct {
 	Indicators []string
 	Verdict    string
@@ -105,6 +107,11 @@ var ErrorIndicators = []string{
 	"[ERROR]",
 	"IOException",
 	"at System.",
+}
+var UpdateIndicators = []string{
+	"Новая версия",
+	"Доступна",
+	"/upgrade",
 }
 var SkipTriggers = []string{
 	"github.com/MCCTeam",

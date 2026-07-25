@@ -102,6 +102,8 @@ func main() {
 	color.Printf("Проверено: <yellow>%d</> | Валидных серверов майна: <green>%d</>\n", totalTargets, liveCount)
 	color.Printf("Результаты сохранены в: <magenta>%s</>\n", outputFile)
 	color.Println("<green>==================================================</>")
+	color.Print("\n<cyan>Нажмите Enter для выхода</>")
+	bufio.NewReader(os.Stdin).ReadString('\n')
 }
 
 // Воркер, выполняющий Server List Ping

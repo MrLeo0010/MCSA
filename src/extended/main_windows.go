@@ -155,6 +155,10 @@ func runMCCWorkflow(serverIP string) string {
 		lineLower := strings.ToLower(line)
 
 		switch {
+		case src.ContainsAny(lineLower, src.UpdateIndicators):
+			color.Println("<yellow>[MCSA Warning] ДОСТУПНО ОБНОВЛЕНИЕ MCC</>")
+			color.Printf("<yellow>[MCSA Warning] Скачать: %s</>\n", src.MCCLink+"/releases")
+			continue
 		case src.ContainsAny(lineLower, src.SessionIndicators):
 			verdict = "LICENSE"
 			color.Printf("<gray>[MCC] %s</>\n", line)
