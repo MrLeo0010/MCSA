@@ -8,6 +8,9 @@ def convert_ports(ip_address, input_file="raw.txt", output_file="targets.txt"):
         print(f"Ошибка: Создай файл {input_file} и закинь туда вывод сканера!")
         return
 
+    # Удаляем пустые строки
+    content = "\n".join(line for line in content.splitlines() if line.strip())
+
     # Регулярка ищет слово Port, а затем забирает только цифры
     ports = re.findall(r"Port\s+(\d+)", content)
 
