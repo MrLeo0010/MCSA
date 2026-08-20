@@ -83,9 +83,9 @@ func runMCCWorkflow(serverIP string) string {
 	color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
 
 	botName := fmt.Sprintf("MCSA_Bot_%d", time.Now().Unix()%10000)
-	if len(src.BotNameVariants) > 0 {
-		botNameIndex := rand.IntN(len(src.BotNameVariants))
-		botName = src.BotNameVariants[botNameIndex]
+	if len(BotNameVariants) > 0 {
+		botNameIndex := rand.IntN(len(BotNameVariants))
+		botName = BotNameVariants[botNameIndex]
 	}
 
 	// Указываем путь к бинарнику через слэш от текущей папки
@@ -132,7 +132,7 @@ func runMCCWorkflow(serverIP string) string {
 			highlightColor string
 		)
 
-		for _, rule := range src.IndicatorRules {
+		for _, rule := range IndicatorRules {
 			if found, start, end = src.WhereContainsAny(line, rule.Indicators); found {
 				verdict = rule.Verdict
 				matchedLine = line
@@ -157,15 +157,15 @@ func runMCCWorkflow(serverIP string) string {
 		lineLower := strings.ToLower(line)
 
 		switch {
-		case src.ContainsAny(lineLower, src.SessionIndicators):
+		case src.ContainsAny(lineLower, SessionIndicators):
 			verdict = "LICENSE"
 			color.Printf("<gray>[MCC] %s</>\n", line)
 
-		case src.ContainsAny(lineLower, src.KickIndicators):
+		case src.ContainsAny(lineLower, KickIndicators):
 			verdict = "KICKED"
 			color.Printf("<gray>[MCC] %s</>\n", line)
 
-		case src.ContainsAny(lineLower, src.SkipTriggers):
+		case src.ContainsAny(lineLower, SkipTriggers):
 			continue
 
 		default:

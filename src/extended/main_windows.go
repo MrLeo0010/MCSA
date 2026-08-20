@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -15,6 +16,13 @@ import (
 	"github.com/gookit/color"
 )
 
+func printHelp() {
+	color.Println("<blue>Справка:</>")
+	color.Println("<blue>  help - вывести эту справку</>")
+	color.Println("<blue>  exit/quit - выйти из программы</>")
+	color.Println("<blue>  update - обновить MCC</>")
+}
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -23,26 +31,34 @@ func main() {
 	color.Println("<green>==================================================</>")
 
 	for {
-		color.Print("\n<cyan>Введи IP сервера для анализа (exit для выхода): </>")
+		color.Print("\n<cyan>Введи IP сервера для анализа (help для справки): </>")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			color.Printf("<red>Ошибка ввода: %v</>\n", err)
 			continue
 		}
 
-		target := strings.TrimSpace(input)
-		if target == "" {
+		userInput := strings.TrimSpace(input)
+		if userInput == "" {
 			continue
 		}
-		if target == "exit" || target == "quit" {
+		if userInput == "help" {
+			printHelp()
+			continue
+		}
+		if userInput == "exit" || userInput == "quit" {
 			break
+		}
+		if userInput == "update" {
+			updateMCC()
+			continue
 		}
 
 		// === ШАГ 1: БАЗОВЫЙ АНАЛИЗ ===
-		baseResult := runBaseWorkflow(target)
+		baseResult := runBaseWorkflow(userInput)
 
 		// === ШАГ 2: ГЛУБОКИЙ АНАЛИЗ (MCC) ===
-		mccResult := runMCCWorkflow(target)
+		mccResult := runMCCWorkflow(userInput)
 
 		// === ШАГ 3: КРАСИВЫЙ СВОДНЫЙ ВЫВОД ===
 		printResults(mccResult, baseResult)
@@ -87,13 +103,18 @@ func runBaseWorkflow(serverIP string) string {
 func runMCCWorkflow(serverIP string) string {
 	color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
 
+	executablePath, err := os.Executable()
+	if err != nil {
+		return "Ошибка: " + err.Error()
+	}
+	os.Chdir(filepath.Base(executablePath))
 	os.Chdir(".\\MCC")
 	mccPath := ".\\MinecraftClient.exe"
 
 	botName := fmt.Sprintf("MCSA_Bot_%d", time.Now().Unix()%10000)
-	if len(src.BotNameVariants) > 0 {
-		botNameIndex := rand.IntN(len(src.BotNameVariants))
-		botName = src.BotNameVariants[botNameIndex]
+	if len(BotNameVariants) > 0 {
+		botNameIndex := rand.IntN(len(BotNameVariants))
+		botName = BotNameVariants[botNameIndex]
 	}
 
 	cmd := exec.Command(mccPath, botName, "-", serverIP, "Offline")
@@ -122,6 +143,10 @@ func runMCCWorkflow(serverIP string) string {
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if scanner.Err() != nil {
+			color.Printf("<red>[Ошибка чтения строки] %v</>\n", scanner.Err())
+			continue
+		}
 
 		var (
 			found          bool
@@ -130,7 +155,7 @@ func runMCCWorkflow(serverIP string) string {
 		)
 
 		// Основные правила
-		for _, rule := range src.IndicatorRules {
+		for _, rule := range IndicatorRules {
 			if found, start, end = src.WhereContainsAny(line, rule.Indicators); found {
 				verdict = rule.Verdict
 				matchedLine = line
@@ -155,19 +180,19 @@ func runMCCWorkflow(serverIP string) string {
 		lineLower := strings.ToLower(line)
 
 		switch {
-		case src.ContainsAny(lineLower, src.UpdateIndicators):
+		case src.ContainsAny(lineLower, UpdateIndicators):
 			color.Println("<yellow>[MCSA Warning] ДОСТУПНО ОБНОВЛЕНИЕ MCC</>")
-			color.Printf("<yellow>[MCSA Warning] Скачать: %s</>\n", src.MCCLink+"/releases")
+			color.Println("<yellow>[MCSA Warning] ОБНОВИТЬ МОЖНО КОМНДОЙ 'update'</>")
 			continue
-		case src.ContainsAny(lineLower, src.SessionIndicators):
+		case src.ContainsAny(lineLower, SessionIndicators):
 			verdict = "LICENSE"
 			color.Printf("<gray>[MCC] %s</>\n", line)
 
-		case src.ContainsAny(lineLower, src.KickIndicators):
+		case src.ContainsAny(lineLower, KickIndicators):
 			verdict = "KICKED"
 			color.Printf("<gray>[MCC] %s</>\n", line)
 
-		case src.ContainsAny(lineLower, src.SkipTriggers):
+		case src.ContainsAny(lineLower, SkipTriggers):
 			continue
 
 		default:
