@@ -54,18 +54,14 @@ func main() {
 			continue
 		}
 
-		// === ШАГ 1: БАЗОВЫЙ АНАЛИЗ ===
 		baseResult := runBaseWorkflow(userInput)
 
-		// === ШАГ 2: ГЛУБОКИЙ АНАЛИЗ (MCC) ===
 		mccResult := runMCCWorkflow(userInput)
 
-		// === ШАГ 3: КРАСИВЫЙ СВОДНЫЙ ВЫВОД ===
 		printResults(mccResult, baseResult)
 	}
 }
 
-// printResults собирает всю аналитику воедино и выводит итоговую картину
 func printResults(mccResult, baseResult string) {
 	color.Println("\n<green>==================================================</>")
 	color.Println("<green>               ИТОГОВЫЙ СВОДНЫЙ ОТЧЕТ             </>")
@@ -76,7 +72,6 @@ func printResults(mccResult, baseResult string) {
 	color.Println("<green>==================================================</>")
 }
 
-// runBaseWorkflow пингует сервер, парсит MOTD и онлайн
 func runBaseWorkflow(serverIP string) string {
 	color.Println("\n<yellow>[1/2] Запуск базового анализа...</>")
 
@@ -88,18 +83,15 @@ func runBaseWorkflow(serverIP string) string {
 
 	motd := strings.TrimSpace(res.ParseMOTD())
 
-	// Выводим инфу в процессе, чтобы юзер видел промежуточный статус
 	color.Println("<green>--------------------------------------------------</>")
 	color.Printf("<green>Версия:</> %s (Протокол %d)\n", res.Version.Name, res.Version.Protocol)
 	color.Printf("<green>Игроки:</> %d/%d\n", res.Players.Online, res.Players.Max)
 	color.Printf("<green>MOTD:</>   %s\n", motd)
 	color.Println("<green>--------------------------------------------------</>")
 
-	// Возвращаем компактную строку для финального отчета
 	return fmt.Sprintf("Успешно пингуется | Версия: %s | Игроки: %d/%d", res.Version.Name, res.Players.Online, res.Players.Max)
 }
 
-// runMCCWorkflow запускает бота и возвращает текстовый вердикт
 func runMCCWorkflow(serverIP string) string {
 	color.Println("\n<yellow>[2/2] Запуск глубокого анализа через MCC...</>")
 
@@ -200,7 +192,6 @@ func runMCCWorkflow(serverIP string) string {
 		}
 	}
 
-	// Корректно завершаем процесс
 	_ = cmd.Process.Kill()
 	color.Println("<gray>[Extended] Процесс MCC завершен.</>")
 

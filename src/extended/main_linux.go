@@ -38,13 +38,10 @@ func main() {
 			break
 		}
 
-		// === ШАГ 1: БАЗОВЫЙ АНАЛИЗ ===
 		baseResult := runBaseWorkflow(target)
 
-		// === ШАГ 2: ГЛУБОКИЙ АНАЛИЗ (MCC) ===
 		mccResult := runMCCWorkflow(target)
 
-		// === ШАГ 3: КРАСИВЫЙ СВОДНЫЙ ВЫВОД ===
 		printResults(mccResult, baseResult)
 	}
 }
@@ -88,13 +85,10 @@ func runMCCWorkflow(serverIP string) string {
 		botName = BotNameVariants[botNameIndex]
 	}
 
-	// Указываем путь к бинарнику через слэш от текущей папки
-	mccPath := "./MinecraftClient" //filepath.Join(".", "MCC", "MinecraftClient")
+	mccPath := "./MinecraftClient"
 
-	// Передаем путь с явным указанием папки
 	cmd := exec.Command(mccPath, botName, "-", serverIP, "Offline")
 
-	// Обязательно задаем Dir, чтобы MCC нашел свой файл конфигурации MinecraftClient.ini
 	os.Chdir("MCC")
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{

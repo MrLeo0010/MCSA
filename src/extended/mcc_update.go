@@ -33,7 +33,6 @@ func testMCC(mccPath string) (bool, error) {
 		return false, err
 	}
 
-	// Запустился — сразу убиваем
 	_ = cmd.Process.Kill()
 	_ = cmd.Wait()
 

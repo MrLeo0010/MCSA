@@ -12,13 +12,11 @@ import (
 	"time"
 )
 
-// Описание игрока в выборке для структуры Minecraft
 type PlayerSample struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
 }
 
-// --- Функции для работы с VarInt протокола Minecraft ---
 func ReadVarInt(r io.Reader) (int, error) {
 	var num int
 	var shift uint
@@ -63,7 +61,6 @@ func WriteString(w io.Writer, s string) error {
 	return err
 }
 
-// PingServer отправляет Handshake и Status Request, возвращая распарсенный JSON с флагом лицензии
 func PingServer(address string, timeout time.Duration) (*StatusResponse, error) {
 	host, portStr, err := net.SplitHostPort(address)
 	if err != nil {
@@ -91,7 +88,7 @@ func PingServer(address string, timeout time.Duration) (*StatusResponse, error) 
 	_ = WriteVarInt(hsBuf, 47) // Протокол 47 подходит для большинства SLP опросов
 	_ = WriteString(hsBuf, host)
 	_, _ = hsBuf.Write([]byte{byte(port >> 8), byte(port)})
-	_ = WriteVarInt(hsBuf, 1) // Next State = 1 (Status)
+	_ = WriteVarInt(hsBuf, 1)
 
 	if err := WriteVarInt(conn, hsBuf.Len()); err != nil {
 		return nil, err
@@ -144,14 +141,12 @@ func PingServer(address string, timeout time.Duration) (*StatusResponse, error) 
 		return nil, err
 	}
 
-	// === ЧИСТАЯ ПРОВЕРКА НА ЛИЦЕНЗИЮ / ПИРАТКУ В PING ===
 	offlineUUIDRegex := regexp.MustCompile(`(?i)[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}`)
 
 	if offlineUUIDRegex.Match(jsonBytes) {
 		response.PirateStatus = "PIRATE"
 		response.PirateStatusReason = "В выборке игроков найден Offline-UUID"
 	} else if response.Players.Online == 0 {
-		// Если игроков нет, мы пока не пишем, что это лицензия, а честно говорим, что нужно проверить при входе
 		response.PirateStatus = "UNKNOWN"
 		response.PirateStatusReason = "Сервер пуст, требуется проверка пакетом Login"
 	} else {

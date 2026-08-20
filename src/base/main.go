@@ -31,7 +31,6 @@ func main() {
 			break
 		}
 
-		// === ЛОГ ВЫПОЛНЕНИЯ ===
 		color.Printf("\n<gray>Опрос %s...</>\n", targetServer)
 		start := time.Now()
 		res, err := src.PingServer(targetServer, 5*time.Second)
@@ -41,12 +40,10 @@ func main() {
 		}
 		duration := time.Since(start)
 
-		// === ЧИСТЫЙ КРАСИВЫЙ ФИНАЛЬНЫЙ ВЫВОД ===
 		color.Println("\n<green>==================================================</>")
 		color.Println("<green>               РЕЗУЛЬТАТЫ АНАЛИЗА                 </>")
 		color.Println("<green>==================================================</>")
 
-		// Основные метрики
 		color.Printf("<blue>Пинг:</>        %v\n", duration.Round(time.Millisecond))
 		color.Printf("<blue>Ядро/Версия:</> <magenta>%s</> (Протокол: %d)\n", res.Version.Name, res.Version.Protocol)
 
@@ -55,7 +52,6 @@ func main() {
 
 		color.Printf("<blue>Онлайн:</>      <green>%d</> / <red>%d</>\n", res.Players.Online, res.Players.Max)
 
-		// Игроки
 		if len(res.Players.Sample) > 0 {
 			color.Println("<blue>Игроки онлайн (выборка):</>")
 			for _, player := range res.Players.Sample {
@@ -71,18 +67,17 @@ func main() {
 
 		color.Println()
 
-		// Вердикт по типу сервера (Лицензия/Пиратка)
-		if res.PirateStatus == "PIRATE" {
+		switch res.PirateStatus {
+		case "PIRATE":
 			color.Printf("<red>❌ Режим: ПИРАТСКИЙ (online-mode = false)</>\n")
 			color.Printf("   Основание: <yellow>%s</>\n", res.PirateStatusReason)
-		} else if res.PirateStatus == "LICENSE" {
+		case "LICENSE":
 			color.Printf("<green>✅ Режим: ЛИЦЕНЗИОННЫЙ (online-mode = true)</>\n")
 			color.Printf("   Основание: %s\n", res.PirateStatusReason)
-		} else {
+		default:
 			color.Printf("<yellow>❓ Режим: НЕИЗВЕСТНО</>\n")
 			color.Printf("   <gray>%s</>\n", res.PirateStatusReason)
 		}
-
 		color.Println("<green>==================================================</>\n")
 	}
 }

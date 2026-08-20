@@ -9,13 +9,11 @@ import (
 	"strings"
 )
 
-// CleanMOTD очищает текст от параграфов (§) разметки Minecraft
 func CleanMOTD(motd string) string {
 	re := regexp.MustCompile(`§[0-9a-fk-orA-FK-OR]`)
 	return re.ReplaceAllString(motd, "")
 }
 
-// ParseMOTD безопасно извлекает текстовый MOTD
 func (s *StatusResponse) ParseMOTD() string {
 	if s.Description == nil {
 		return ""
@@ -32,13 +30,11 @@ func (s *StatusResponse) ParseMOTD() string {
 }
 
 func WhereContainsAny(str string, indicators []string) (bool, int, int) {
-	// Переводим исходную строку в нижний регистр и сразу в руны
 	strRunes := []rune(strings.ToLower(str))
 
 	for _, indicator := range indicators {
 		indicatorRunes := []rune(strings.ToLower(indicator))
 
-		// Ищем совпадение слайса рун indicatorRunes внутри strRunes
 		start := findRuneSubslice(strRunes, indicatorRunes)
 		if start != -1 {
 			end := start + len(indicatorRunes)
@@ -59,7 +55,6 @@ func ContainsAny(s string, words []string) bool {
 	return false
 }
 
-// Вспомогательная функция для поиска одного слайса рун в другом
 func findRuneSubslice(haystack, needle []rune) int {
 	if len(needle) == 0 {
 		return -1

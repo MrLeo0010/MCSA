@@ -12,10 +12,9 @@ import (
 	"github.com/gookit/color"
 )
 
-// Конфиг сканера
 const (
-	MaxWorkers = 500             // Сколько горутин фигачат одновременно
-	Timeout    = 5 * time.Second // Тайм-аут на один сервер (чтобы не зависать)
+	MaxWorkers = 500
+	Timeout    = 5 * time.Second
 )
 
 func main() {
@@ -26,7 +25,6 @@ func main() {
 	inputFile := "targets.txt"
 	outputFile := "live_servers.txt"
 
-	// 1. Читаем цели из файла
 	file, err := os.Open(inputFile)
 	if err != nil {
 		color.Printf("<red>[ОШИБКА]</> Не найден файл %s рядом с бинарником!\n", inputFile)
@@ -39,10 +37,13 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+		if scanner.Err() != nil {
+			color.Printf("<red>[ОШИБКА]</> Ошибка чтения файла: %v\n", scanner.Err())
+			continue
+		}
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		// Если порт не указан, автоматом ставим 25565
 		if !strings.Contains(line, ":") {
 			line = line + ":25565"
 		}
@@ -53,31 +54,26 @@ func main() {
 	color.Printf("<cyan>[i]</> Загружено целей для проверки: <yellow>%d</>\n", totalTargets)
 	color.Printf("<gray>[i]</> Запуск пула из %d воркеров...\n\n", MaxWorkers)
 
-	// 2. Каналы для распределения задач
 	jobs := make(chan string, totalTargets)
 	results := make(chan string, totalTargets)
 
 	var wg sync.WaitGroup
 
-	// 3. Запускаем воркеры
 	for w := 1; w <= MaxWorkers; w++ {
 		wg.Add(1)
 		go worker(jobs, results, &wg)
 	}
 
-	// 4. Закидываем задачи в канал
 	for _, target := range targets {
 		jobs <- target
 	}
-	close(jobs) // Больше задач не будет
+	close(jobs)
 
-	// 5. Горутина для ожидания завершения воркеров и закрытия канала результатов
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
 
-	// 6. Сбор результатов и запись в файл «на лету»
 	outFile, err := os.Create(outputFile)
 	if err != nil {
 		color.Printf("<red>[ОШИБКА]</> Не удалось создать файл результатов: %v\n", err)
@@ -90,11 +86,9 @@ func main() {
 
 	for res := range results {
 		liveCount++
-		// Выводим в консоль красивый лог
 		color.Printf("<green>[МАТЧ]</> Найдена жизнь: <lightGreen>%s</>\n", res)
-		// Пишем в файл
 		_, _ = writer.WriteString(res + "\n")
-		_ = writer.Flush() // Сбрасываем в файл сразу, чтобы не потерять при прерывании
+		_ = writer.Flush()
 	}
 
 	color.Println("\n<green>==================================================</>")
@@ -106,19 +100,15 @@ func main() {
 	bufio.NewReader(os.Stdin).ReadString('\n')
 }
 
-// Воркер, выполняющий Server List Ping
 func worker(jobs <-chan string, results chan<- string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for target := range jobs {
-		// Делаем полноценный запрос статуса сервера Minecraft
 		res, err := src.PingServer(target, Timeout)
 		if err != nil {
-			// Если порт закрыт, таймаут или там не майн — просто игнорим
 			continue
 		}
 
-		// Если получили вменяемый ответ (проверяем версию или описание)
 		if res.Version.Name != "" || res.ParseMOTD() != "" {
 			results <- target
 		}
