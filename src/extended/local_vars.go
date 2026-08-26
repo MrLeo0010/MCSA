@@ -65,6 +65,7 @@ var LicenseIndicators = []string{
 	"Failed to verify username",
 	"Microsoft",
 	"Minecraft account",
+	"Minecraft.net",
 }
 var RegisterIndicators = []string{
 	"/reg",
